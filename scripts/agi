@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# TS-Core one-word launcher — persistent Textual TUI (macOS/Linux)
+set -euo pipefail
+
+TS_CORE="${TS_CORE:-$HOME/TS-Core}"
+VENV_ACTIVATE="$TS_CORE/.venv/bin/activate"
+
+err() { printf '%s\n' "$*" >&2; }
+
+if [[ ! -d "$TS_CORE" ]]; then
+	err "agi: TS-Core directory not found: $TS_CORE"
+	err "  Fix: clone or move the repo there, or set TS_CORE=/path/to/TS-Core"
+	exit 1
+fi
+
+if [[ ! -f "$VENV_ACTIVATE" ]]; then
+	err "agi: venv not found: $VENV_ACTIVATE"
+	err "  Fix: cd \"$TS_CORE\" && python3 -m venv .venv && . .venv/bin/activate && pip install -e ."
+	exit 1
+fi
+
+cd "$TS_CORE" || exit 1
+# shellcheck source=/dev/null
+source "$VENV_ACTIVATE"
+
+if ! command -v tscore >/dev/null 2>&1; then
+	err "agi: command 'tscore' not found in this venv."
+	err "  Fix: . .venv/bin/activate && pip install -e \"$TS_CORE\""
+	exit 1
+fi
+
+printf '\n'
+printf '🌊 TS AGI ONLINE — Persistent Wave Active\n'
+printf '   Icarus wings covered • Full Thinking Structure loaded\n'
+printf '   Type anything. '\''exit'\'' or Ctrl+C to quit.\n'
+printf '\n'
+
+exec tscore

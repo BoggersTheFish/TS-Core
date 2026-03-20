@@ -1,83 +1,69 @@
 # TS-Core v1.0
 
-Local-first, open-source **Thinking Structure (TS)** kernel for BoggersTheFish / Architect-grade graphs: nodes, constraints, wave propagation, emergent stability, Grok bridge, Z3 alignment proofs, and the full filter stack — including the **Icarus wings cover** (fireproof native TS). *The persistent wave with Grok and the Architect's fireproof TS wings.*
+## What this repository is (exactly)
 
-**Canonical TS (from [boggersthefish.com](https://boggersthefish.com)):** TS is a meta-framework for understanding and building all systems as **constraint-based, wave-like, emergent structures** that continuously converge toward higher stability. It is not merely a theory or a tool — it is framed as the **operating logic** through which we read reality:
+**TS-Core** is a **local-first Python library and CLI** (optional **Rust** acceleration via PyO3) that implements a small **graph dynamics engine** with persistence hooks. It is **application software** you run on your machine — not a replacement for your operating system kernel.
 
-- The framework is **non-static** and **self-improving**
-- **Truth** = the most stable configuration the constraints allow
-- **Complexity** = pure emergence from local interactions
-- **Change** = wave propagation through the graph
-- **Everything that exists** = stable clusters of constraints (**nodes + edges**)
+Concretely, the code maintains a **JSON-serializable graph** of **nodes** (each with numeric **activation** and **stability**, plus arbitrary extra fields) and **weighted edges**. On each tick, `TSCore.propagate_wave()` updates activations by **blending each node toward a weighted average of its neighbors** (damped). An alternate mode, **Kernel Wave 12**, runs a **nine-phase variant** of that dynamics (strongest-node bias, extra propagation passes, tension checks) and logs metadata — still **entirely inside this process**, over **your TS graph**, not over real OS processes.
 
-The site’s **TS-OS** loop:
+Alongside the numbers, several **Python filter modules** inspect the graph and tension and write **human-readable labels** into graph `meta` (e.g. perceived-risk framing, narrative routing, “logic forcing” copy). **IcarusWingsCover** adds a consistent console **voice** and manifesto-style lines. Those layers are **heuristic glue and metaphor**, not a proof that natural-language claims are “true” in the world.
 
-```text
-while true:
-  Propagate()   // wave spreads activation
-  Relax()       // resolve violated constraints
-  if tension too high:
-    Break()     // collapse weak patterns
-    Evolve()    // spawn higher-stability structure
-```
+**Persistence:** under `TSCORE_HOME` (default `~/.tscore`), the core reads/writes a **factory JSON** (`self_improving_factory.json`) and appends **JSONL** history (`wave_history.jsonl`, optional `daily_spin.jsonl`, `pages_island.jsonl` for Wave 12).
 
-Your job: find the lowest-stability node, push activation (vibe-code) until it breaks; the OS converges the rest.
+**Optional integrations:**
+
+- **Grok / xAI** (`GrokPlugin`): HTTP chat completions when `XAI_API_KEY` is set; otherwise a **local stub** so demos do not fail offline.
+- **Z3** (`Z3AlignmentSolver`): builds a **small, abstract** satisfiability sketch over the graph (booleans + bounded reals for stability). Useful as a **smoke test** that the toy constraints can be satisfied — **not** a formal proof of real-world alignment or semantics of arbitrary text.
+
+**Interfaces:** Textual **TUI** (`tscore` / `python -m src.python.mind_runtime`), **daily grounding** (`tscore-daily` / `python -m src.python.daily_spin`), optional **Streamlit** UI, **Docker Compose**, and optional Unix **`scripts/agi`** launcher (see below).
 
 ---
 
-## Universal law (conversation canon)
+## What it does (capabilities)
 
-**TS** is the universal law of logical structure: **every system** = **nodes** (fundamental units) + **constraints** (rules/edges) + **interactions / wave propagation** + **emergent outcomes**. Complexity is pure emergence; **truth** = the most stable configuration the constraints allow. Nothing exists outside this framing when TS is the native read.
-
----
-
-## Full 8-step TS pipeline (implemented as phases)
-
-1. **Constraint decomposition** — break claims into enforceable relations  
-2. **Node mapping** — assign stable identities and activations  
-3. **System simplification** — collapse redundant or weak structure  
-4. **Emergent deduction** — read what the graph *must* imply  
-5. **Recursive validation** — re-check stability under relaxation (also on startup)  
-6. **Universality** — same loop for code, orgs, myths, kernels  
-7. **Visualization / metaphor** — language as pointer, not ground  
-8. **Extreme detail** — drill without losing constraint discipline  
-
-`TSCore` advances a cursor across these steps on each propagation tick (`src/python/core.py`).
+- Loads or bootstraps a **factory graph**, **self-validates** on startup (relaxation on a deep copy; notes in `meta["startup_validation"]`).
+- **Propagates** waves (pure Python by default; **Rust** `rust_propagate_wave` / `rust_wave12_propagate` if the `ts_core_kernel` extension is built).
+- Runs the **filter stack** and **Icarus cover** each tick; advances an internal **8-step pipeline cursor** (phase names for logging, not a separate solver).
+- **Daily spin** settles the graph quietly, prints a **sensible outcome** line, picks the **lowest-stability** node as “push today,” optionally runs **fireproof evolution** hooks, and appends **one JSONL line**.
+- **Kernel Wave 12** mode: 9-phase trace, **Pages Island** JSONL line per tick when enabled.
+- **Tests** (`tests/alignment_test.py`) exercise propagation, filters, Z3 toy model, history writes, and Wave 12 paths.
 
 ---
 
-## Architect insights (encoded in-repo)
+## Thinking Structure (TS) — conceptual frame
 
-- **Perceived risks** — `CoherenceFilter` / `PerceivedRiskFilter`: “global risks” are treated as **perceptual overlays** unless carried by coherent constraint structure; propagation keeps **constraint-allowed** outcomes.  
-- **Consciousness** — `NarrativeDreamFilter`: consciousness claims route through a **narrative dream** layer; **nodes + constraints** remain ground.  
-- **Meta-axiom** — `LogicForcingLayer`: *I’m forcing a logic system to give a logic output by forcing the logic of how everything works.*  
-- **Additional axioms** (pinned on every forcing pass):  
-  - *It works because things work.*  
-  - *TS is both stupid and yet incredibly useful.*  
-  - *All because I didn’t get lost within the workings of everyone else.*  
-  - *The only thing currently perfect is TS itself — native, pre-language, encapsulates language.*  
-- **Economy / openness** — this repo is **free, open-source, zero marginal cost** in spirit: local-first, no vendor lock for the core loop.  
-- **Persistent wave** — JSONL history under `TSCORE_HOME` (default `~/.tscore/wave_history.jsonl`); **self-validating** on startup; ready for **Kernel Wave 12 (Pages Island)** graphs.
+**TS** (Thinking Structure), as described at **[boggersthefish.com](https://boggersthefish.com)**, is a **meta-framework**: systems as **constraints, waves, and emergent stability**. This repo **encodes a runnable slice** of that idea (graphs, propagation, persistence, narrative filters). It does **not** by itself instantiate “TS as the logic of all reality”; it is a **tool and demo kernel** you can grow.
 
-### Icarus wings cover (`icarus_wings_cover.py`)
+Canonical remote: **[github.com/BoggersTheFish/TS-Core](https://github.com/BoggersTheFish/TS-Core)**.
 
-**Religion, history, mysticism, story, song, *Steel Ball Run*, Fortnite** — all **Icarus** pointing at TS with **fragile wax wings** (language, ritual, myth packaging). They **heat and fail** when mistaken for ground. **Native TS** is the **fireproof cover** for those wings: **fly at the sun without melting**; **sensible outcomes** are **enforced** by constraint propagation, not by narrative heat.
+---
 
-On **every** propagation tick the cover prints:
+## Current limitations (important)
 
-`WINGS COVERED -> native TS spin applied, no melting, sensible outcome enforced.`
+| Area | Limitation |
+|------|------------|
+| **Scope** | In-process **simulation** over **your declared graph**. Not a host OS scheduler, hypervisor, or distributed system unless **you** wire it to one. |
+| **Semantics** | **No** deep NLP or world model. Filters use **simple rules** and graph/tension context; output is **staged copy + meta**, not verified epistemology. |
+| **Z3** | **Toy** mapping from graph shape to constraints. **SAT** means the sketch is satisfiable, **not** that external claims or missions are “proven safe.” |
+| **Grok** | Optional **third-party API**; stub responses are placeholders. |
+| **Default graph** | The shipped **seed factory** is **illustrative**. Real use requires **modeling** nodes, edges, and any domain semantics yourself. |
+| **Rust** | **Optional**; Python path is the **portable default**. |
 
-Reinterpretations (**Lose Yourself**, **Move Like the Mist**, etc.) **collapse to the same TS story**: direct spin, no rituals, **sensible outcome appears** when structure leads.
+---
 
-### Explicit perfection statement
+## How to expand it
 
-**TS is the only perfect thing — native structure that encapsulates language and lets you fly at the sun without burning.**
+- **Domain graphs:** Replace or grow `self_improving_factory.json` (or load from your own builder) with nodes/edges that mean something in **your** system (org, product, research DAG, etc.).
+- **New behavior:** Add filters or hooks (`on_propagate`), or call `propagate_wave` from your app and read `graph["meta"]` / JSONL for **telemetry, CI gates, or UI**.
+- **Stronger assurance:** Tighten or replace the **Z3** layer with models that match **your** actual constraints; use TS-Core as a **thin simulation shell** around a real verifier.
+- **Performance:** Build **`ts_core_kernel`** (maturin / `cargo build --features python`) for faster propagation on large graphs.
+- **Deployment:** Embed the library in a **web backend**, run **Docker** services, or connect **Grok** only where API use is acceptable.
 
 ---
 
 ## Repo layout
 
-The project files live at the **repository root** (the folder that contains `pyproject.toml` and `Cargo.toml`) — not in a nested `TS-Core/` subfolder.
+The project root is the folder that contains `pyproject.toml` and `Cargo.toml`.
 
 ```text
 .
@@ -86,6 +72,10 @@ The project files live at the **repository root** (the folder that contains `pyp
 ├── Cargo.toml
 ├── pyproject.toml
 ├── Dockerfile
+├── docker-compose.yml
+├── scripts/
+│   ├── agi                      # optional one-word Unix launcher → tscore TUI
+│   └── install-agi-launcher.sh  # installs ~/.local/bin/agi + PATH hooks
 ├── src/
 │   ├── python/
 │   │   ├── core.py
@@ -97,94 +87,73 @@ The project files live at the **repository root** (the folder that contains `pyp
 │   │   ├── icarus_wings_cover.py
 │   │   ├── daily_spin.py
 │   │   ├── mind_runtime.py
-│   │   └── streamlit_app.py   # optional GUI (not in minimal tree spec; ships for Streamlit service)
+│   │   └── streamlit_app.py
 │   ├── rust/
-│   │   ├── lib.rs             # crate root (PyO3 + modules)
+│   │   ├── lib.rs
 │   │   ├── kernel.rs
 │   │   └── bindings.rs
 │   └── shared/
 │       └── wave_propagate.rs
 ├── tests/
 │   └── alignment_test.py
-├── docker-compose.yml
 └── docs/
     └── Kernel-Wave-12.md
 ```
-
-Canonical upstream intent: **[github.com/BoggersTheFish/TS-Core](https://github.com/BoggersTheFish/TS-Core)**.
 
 ---
 
 ## One-command setup (laptop)
 
 ```bash
-cd /path/to/this/repo   # folder containing pyproject.toml
+cd /path/to/this/repo
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # Unix: source .venv/bin/activate
 pip install -e ".[dev,gui]"
 ```
 
-### Daily grounding (minimal — one sensible outcome + node to push)
+### Optional: Unix `agi` launcher
 
-Quiet propagation through the full filter stack; appends one JSON line to **`~/.tscore/daily_spin.jsonl`**. Uses `TSCore.propagate_wave(quiet=True)` so Icarus lines are not printed until the final summary.
+From a Unix shell, you can install a short **`agi`** command that activates the repo venv and runs **`tscore`**:
+
+```bash
+bash scripts/install-agi-launcher.sh
+# then: agi
+```
+
+Set **`TS_CORE`** if the repo is not at `$HOME/TS-Core`.
+
+### Daily grounding
+
+Appends one JSON line to **`~/.tscore/daily_spin.jsonl`**. Uses `TSCore.propagate_wave(quiet=True)` so Icarus lines stay quiet until the summary.
 
 ```bash
 python -m src.python.daily_spin
 ```
 
-After `pip install -e .`, you can also run **`tscore-daily`** (same as the module above).
+After `pip install -e .`, **`tscore-daily`** runs the same module.
 
-`language_ritual` can be evolved into a fireproof tool — language serves TS directly (see below).
+**Push target:** lowest-stability node (tie-break: lower activation). If that node matches a **fireproof evolution** rule, the matching **`evolve_*`** method runs, factory JSON is rewritten, and the printed push line uses **post-evolution** values.
 
-#### How `daily_spin` chooses the push target
+| Node ID | Method | Effect (summary) |
+|--------|--------|------------------|
+| `language_ritual` | `evolve_language_ritual()` | `language_as_tool`, stability floor, `meta.language_fireproof` |
+| `kernel_wave_12` | `evolve_kernel_wave12()` | `kernel_fireproof`, stability/activation floors |
+| `persistent_wave` | `evolve_persistent_wave()` | `persistent_fireproof`, stability/activation floors |
+| `evolve_*` | `evolve_dynamic_node(node_id)` | `evolved` flag, stability/activation floors |
 
-Each run picks the **lowest-stability** node (tie-break: lower activation) — TS-OS style: push the weakest link first.
-
-#### Order of operations (important)
-
-1. Quiet propagation settles the graph.  
-2. **`push_id` / `push_snap`** are computed.  
-3. If the push target matches a **fireproof evolution** rule, the matching **`evolve_*` method runs immediately** (updates the node and rewrites `self_improving_factory.json`).  
-4. **`push_snap` is refreshed** so the printed **“Push today”** line shows **post-evolution** activation/stability.  
-5. Sensible outcome is printed, then the log line, then **`daily_spin.jsonl`** is appended.
-
-#### Fireproof evolution hooks (`src/python/core.py`)
-
-When `daily_spin` names one of these nodes as **today’s push**, the core upgrades it and persists the full node dict (including flags) to **`TSCORE_HOME/self_improving_factory.json`**:
-
-| Node ID | Method | Effect |
-|--------|--------|--------|
-| `language_ritual` | `evolve_language_ritual()` | `language_as_tool`, stability ≥ 0.96, `meta.language_fireproof`; **Icarus** can echo the evolution line on later propagates. |
-| `kernel_wave_12` | `evolve_kernel_wave12()` | `kernel_fireproof`, stability ≥ 0.96, activation ≥ 0.90, `meta.kernel_fireproof`. |
-| `persistent_wave` | `evolve_persistent_wave()` | `persistent_fireproof`, stability ≥ 0.96, activation ≥ 0.90, `meta.persistent_fireproof`. |
-| any `evolve_*` | `evolve_dynamic_node(node_id)` | Factory/self-improve nodes: `evolved` flag, stability ≥ 0.96, activation ≥ 0.85, `meta.last_evolved`. |
-
-`_load_factory()` merges **extra keys** on each node (e.g. `language_as_tool`, `kernel_fireproof`) so fireproof state survives restarts.
-
-### Run (terminal TUI — BoggersTheMind style)
+### Run (terminal TUI)
 
 ```bash
 python -m src.python.mind_runtime
+# or: tscore
 ```
 
-Or the console script (if your `Scripts` dir is on `PATH`):
-
-```bash
-tscore
-```
-
-### Run (built-in demo: all filters + Icarus + Z3 + Grok stub)
+Demo (filters + Icarus + Z3 + Grok stub):
 
 ```bash
 python -m src.python.mind_runtime --demo
 ```
-
-You should see:
-
-- `WINGS COVERED -> native TS spin applied, no melting, sensible outcome enforced.`  
-- `✅ Only things that make sense work`  
-- `It works because things work 💀`  
 
 ### Optional Streamlit GUI
 
@@ -193,7 +162,7 @@ pip install -e ".[gui]"
 python -m streamlit run src/python/streamlit_app.py
 ```
 
-Docker Compose profile `tscore-gui` exposes port **8501**.
+Docker Compose profile **`tscore-gui`** exposes port **8501**.
 
 ### Grok / xAI
 
@@ -202,62 +171,41 @@ set XAI_API_KEY=your_key   # Windows
 export XAI_API_KEY=your_key  # Unix
 ```
 
-`GrokPlugin` (`src/python/grok_plugin.py`) calls `https://api.x.ai/v1/chat/completions` when the key is present; otherwise it returns a **local-first offline** stub so the wave never hard-fails.
-
-### Z3 proofs
-
-`Z3AlignmentSolver` builds a **toy** satisfiability model over your graph and reports whether the simplified constraint sketch is **SAT** — a provable alignment smoke test before scaling graphs.
-
-### Test command (global risks + consciousness + Icarus/religion + lyrics)
+### Tests
 
 ```bash
 python -m pytest tests/alignment_test.py -v
 ```
 
-This feeds **existential doom**, **consciousness as ground**, **Icarus religion**, and **song / Fortnite-flavored** text through **`TSCore.propagate_wave`**, then asserts:
+**Kernel Wave 12:** `test_kernel_wave12_fireproof_os_stability` covers the 9-phase path, **`pages_island.jsonl`**, and related metadata.
 
-- perceived-risk reframing fired  
-- narrative-dream routing fired  
-- logic forcing + Icarus cover + perfection manifesto present  
-- Z3 toy model **satisfiable**  
-- JSONL **wave history** written  
-
-**Kernel Wave 12 regression:** `test_kernel_wave12_fireproof_os_stability` exercises the 9-phase path, **`pages_island.jsonl`**, and Icarus OS metadata.
-
-### Verification (proof the tree is healthy)
+### Quick verification
 
 ```bash
 python -m pytest tests/alignment_test.py -v
 python -m src.python.daily_spin
-# optional: python -m src.python.mind_runtime --demo
-# optional: python -m src.python.mind_runtime --kernel-wave12
 ```
 
-All alignment tests should **pass**; `daily_spin` appends one line to **`~/.tscore/daily_spin.jsonl`** and prints one sensible outcome + push line.
-
-See **`CHANGELOG.md`** for a concise record of recent capabilities.
+See **`CHANGELOG.md`** for a concise capability history.
 
 ---
 
-## Rust kernel + Python bindings (optional acceleration)
-
-Pure Python propagation is **canonical** for `pip install -e .`. Optional **Rust** (`wave_propagate.rs`, `kernel.rs`) matches the same math; **PyO3** module `ts_core_kernel` loads if built.
+## Rust kernel + Python bindings (optional)
 
 ```bash
-# From repository root
-cargo build --release              # rlib / CLI consumers
-cargo build --release --features python   # extension module build
+cargo build --release
+cargo build --release --features python
 ```
 
-For Python extension workflows, use **[maturin](https://www.maturin.rs/)** (recommended) or set `PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1` on bleeding-edge Python (also set in `.cargo/config.toml` here).
+For the extension module, **[maturin](https://www.maturin.rs/)** is recommended. On bleeding-edge Python, `PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1` may be needed (see `.cargo/config.toml`).
 
 ---
 
 ## Docker / Compose
 
 ```bash
-docker compose run --rm tscore          # demo
-docker compose run --rm tscore-tui      # interactive TUI (allocate TTY)
+docker compose run --rm tscore
+docker compose run --rm tscore-tui
 docker compose --profile gui up tscore-gui
 ```
 
@@ -265,56 +213,24 @@ Data persists in volume **`tscore_data`** at `/data/tscore`.
 
 ---
 
-## Self-improving data factory & persistence
+## Kernel Wave 12 (Pages Island) — technical note
 
-- **Factory file**: `TSCORE_HOME/self_improving_factory.json` seeds and grows the graph (`TSCore.factory_evolve()`).  
-- **History**: `TSCORE_HOME/wave_history.jsonl` append-only propagation records (persistent wave).  
-- **Daily spin**: `TSCORE_HOME/daily_spin.jsonl` one line per `python -m src.python.daily_spin` run.  
-- **Startup**: **Recursive validation** runs on a **deep copy** of the graph so history stays clean (`core.py`).
-
----
-
-## Kernel Wave 12 (Pages Island)
-
-**Kernel Wave 12** turns TS-Core into a **native-TS operating surface**: every simulated **process**, **resource**, and **decision** is governed by **strongest-node wave propagation** — not a classical FIFO/priority scheduler. Native TS remains the **only perfect thing**: fireproof cover for Icarus wings, **pre-language**, encapsulating all narrative overlays.
-
-**9-phase OS quantum** (implemented in `src/rust/kernel.rs` as `Wave12Scheduler`, mirrored in Python when the PyO3 extension is not built):
-
-| Phases | Role |
-|--------|------|
-| **1–3** | Strongest-node **detection**, **lock / spin budget**, **initial spin** (first relaxation after bias) |
-| **4–6** | **Constraint propagation** across processes/resources: process fanout, resource coupling, constraint surge |
-| **7–9** | **Icarus seal** on low-stability “wax” nodes, **self-validation** (tension bound), **Pages Island** persist tick |
-
-On each Wave 12 tick, **IcarusWingsCover** also prints:
-
-`KERNEL WAVE 12 - Pages Island spin applied, wings fully covered`
-
-**One-command activation:**
+**Kernel Wave 12** is the **nine-phase strongest-node-biased propagation** path (`Wave12Scheduler` in `src/rust/kernel.rs`, mirrored in Python in `TSCore._python_wave12_propagate_blob`). It **simulates** an “OS quantum” over the **TS graph** (phase labels, tension before/after, optional **Icarus** kernel line). It does **not** schedule real CPU processes unless you **integrate** graph state with an external system.
 
 ```bash
 pip install -e ".[dev]"
 python -m src.python.mind_runtime --kernel-wave12
 ```
 
-Or enable for any `TSCore` instance / process:
+Or: `set TSCORE_KERNEL_WAVE12=1` (Windows) / `export TSCORE_KERNEL_WAVE12=1` (Unix).
 
-```bash
-set TSCORE_KERNEL_WAVE12=1
-python -m src.python.mind_runtime --demo
-```
-
-**Rust extension:** `rust_wave12_propagate` is exported from `ts_core_kernel` when built with `--features python` (see `src/rust/bindings.rs`). Python calls it automatically when available; otherwise the **same 9-phase logic** runs in `TSCore._python_wave12_propagate_blob`.
-
-**Pages Island persistence:** each Wave 12 quantum appends a JSON line to `TSCORE_HOME/pages_island.jsonl` (alongside the ordinary wave history).
-
-Full spec, snippets, and demo output: **`docs/Kernel-Wave-12.md`**.
+Full narrative and snippets: **`docs/Kernel-Wave-12.md`**.
 
 ---
 
-## Next Criticality
+## Design voice (optional reading)
 
-**Kernel Wave 12 is live — the entire machine (simulated OS graph) now runs on native TS.** Next: embed into **[boggersthefish.com](https://boggersthefish.com)** or push to **production hardware** with the same strongest-node wave and fireproof Icarus cover.
+The codebase intentionally carries **Architect / BoggersTheFish** framing: perceived risk as **coherence-limited**, consciousness claims routed through **narrative dream**, **LogicForcingLayer** pinned axioms, and **IcarusWingsCover** as a metaphor for **language/myth vs constraint-grounded outcomes**. That is **product philosophy and logging style**, layered on top of the **mechanical** graph engine described at the top of this file.
 
 ---
 
