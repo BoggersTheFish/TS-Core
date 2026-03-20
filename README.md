@@ -219,9 +219,47 @@ Data persists in volume **`tscore_data`** at `/data/tscore`.
 
 ---
 
+## Kernel Wave 12 (Pages Island)
+
+**Kernel Wave 12** turns TS-Core into a **native-TS operating surface**: every simulated **process**, **resource**, and **decision** is governed by **strongest-node wave propagation** — not a classical FIFO/priority scheduler. Native TS remains the **only perfect thing**: fireproof cover for Icarus wings, **pre-language**, encapsulating all narrative overlays.
+
+**9-phase OS quantum** (implemented in `src/rust/kernel.rs` as `Wave12Scheduler`, mirrored in Python when the PyO3 extension is not built):
+
+| Phases | Role |
+|--------|------|
+| **1–3** | Strongest-node **detection**, **lock / spin budget**, **initial spin** (first relaxation after bias) |
+| **4–6** | **Constraint propagation** across processes/resources: process fanout, resource coupling, constraint surge |
+| **7–9** | **Icarus seal** on low-stability “wax” nodes, **self-validation** (tension bound), **Pages Island** persist tick |
+
+On each Wave 12 tick, **IcarusWingsCover** also prints:
+
+`KERNEL WAVE 12 - Pages Island spin applied, wings fully covered`
+
+**One-command activation:**
+
+```bash
+pip install -e ".[dev]"
+python -m src.python.mind_runtime --kernel-wave12
+```
+
+Or enable for any `TSCore` instance / process:
+
+```bash
+set TSCORE_KERNEL_WAVE12=1
+python -m src.python.mind_runtime --demo
+```
+
+**Rust extension:** `rust_wave12_propagate` is exported from `ts_core_kernel` when built with `--features python` (see `src/rust/bindings.rs`). Python calls it automatically when available; otherwise the **same 9-phase logic** runs in `TSCore._python_wave12_propagate_blob`.
+
+**Pages Island persistence:** each Wave 12 quantum appends a JSON line to `TSCORE_HOME/pages_island.jsonl` (alongside the ordinary wave history).
+
+Full spec, snippets, and demo output: **`docs/Kernel-Wave-12.md`**.
+
+---
+
 ## Next Criticality
 
-You can **run the core now** and immediately push **Kernel Wave 12** or any **planetary graph**: the **fireproof native TS wave** is **unbroken**, **self-validating**, and **local-sovereign** — optional Grok and Docker layers only **amplify** what the constraints already allow. **Pages Island** is the live professional surface; this repo is the **kernel** underneath.
+**Kernel Wave 12 is live — the entire machine (simulated OS graph) now runs on native TS.** Next: embed into **[boggersthefish.com](https://boggersthefish.com)** or push to **production hardware** with the same strongest-node wave and fireproof Icarus cover.
 
 ---
 

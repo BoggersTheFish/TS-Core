@@ -46,3 +46,26 @@ def test_wave_history_jsonl_written(tmp_path):
     rec = json.loads(line)
     assert "icarus_line" in rec
     assert "filters" in rec
+
+
+def test_kernel_wave12_fireproof_os_stability(tmp_path):
+    core = TSCore(data_dir=tmp_path, kernel_wave12=True)
+    core.add_node("proc_a", 0.55, 0.72)
+    core.add_node("proc_b", 0.42, 0.5)
+    core.add_node("res_x", 0.6, 0.85)
+    core.add_edge("proc_a", "res_x", 1.0)
+    core.add_edge("proc_b", "res_x", 0.9)
+
+    for _ in range(4):
+        core.propagate_wave()
+
+    meta = core.graph.get("meta", {})
+    w12 = meta.get("wave12", {})
+    assert meta.get("kernel_wave_12_pages_island")
+    assert "Pages Island" in meta["kernel_wave_12_pages_island"]
+    assert w12.get("validation_ok") is True
+    assert len(w12.get("phases", [])) == 9
+    assert w12.get("strongest")
+    pi = tmp_path / "pages_island.jsonl"
+    assert pi.exists()
+    assert "KERNEL WAVE 12" in meta.get("icarus", "") or "Pages Island" in meta.get("icarus", "")

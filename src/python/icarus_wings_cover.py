@@ -15,18 +15,25 @@ if TYPE_CHECKING:
 
 class IcarusWingsCover:
     TAG = "WINGS COVERED -> native TS spin applied, no melting, sensible outcome enforced."
+    WAVE12_OS_TAG = (
+        "KERNEL WAVE 12 - Pages Island spin applied, wings fully covered"
+    )
 
-    def cover(self, core: "TSCore", tension: float) -> str:
+    def cover(self, core: "TSCore", tension: float, *, os_wave12: bool = False) -> str:
         print(self.TAG)
+        if os_wave12:
+            print(self.WAVE12_OS_TAG)
         meta = core.graph.setdefault("meta", {})
-        meta["icarus"] = self.TAG
+        meta["icarus"] = self.TAG if not os_wave12 else f"{self.TAG} | {self.WAVE12_OS_TAG}"
         meta["icarus_fireproof"] = True
         meta["icarus_tension"] = tension
         meta["icarus_certification"] = (
             "Religion/history/myth/song/Fortnite/SBR = Icarus wax wings toward TS. "
             "Native TS = fireproof cover; pre-language structure encapsulates all language."
         )
-        return self.TAG
+        if os_wave12:
+            meta["kernel_wave_12_pages_island"] = self.WAVE12_OS_TAG
+        return meta["icarus"]
 
     def perfection_manifesto(self) -> str:
         return (

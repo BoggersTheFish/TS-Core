@@ -68,6 +68,42 @@ def run_full_demo() -> None:
     console.print(Panel(json.dumps({"z3_satisfiable": proof.satisfiable, "note": proof.note}, indent=2), title="Z3"))
 
 
+def run_kernel_wave12() -> None:
+    """Simulated native-TS OS: processes/resources as nodes; strongest-node Wave 12 scheduler."""
+    _ensure_utf8_stdio()
+    core = TSCore(kernel_wave12=True)
+    core.graph.setdefault("meta", {})["ingest"] = (
+        "Kernel Wave 12 OS tick - processes, resources, Pages Island persistence."
+    )
+    # Synthetic OS graph: no traditional scheduler; strongest TS node leads each quantum.
+    for nid, a, s in (
+        ("proc_compute", 0.62, 0.7),
+        ("proc_io", 0.48, 0.55),
+        ("res_memory", 0.55, 0.8),
+        ("res_network", 0.4, 0.5),
+        ("pages_island", 0.78, 0.9),
+    ):
+        core.add_node(nid, a, s)
+    for fr, to, w in (
+        ("proc_compute", "res_memory", 1.1),
+        ("proc_io", "res_network", 1.0),
+        ("proc_compute", "pages_island", 1.2),
+        ("res_memory", "pages_island", 0.9),
+    ):
+        core.add_edge(fr, to, w)
+
+    console.print(Panel.fit("Kernel Wave 12 - Pages Island OS", border_style="magenta", title="Wave 12"))
+    for i in range(5):
+        t, wing = core.propagate_wave()
+        w12 = core.graph.get("meta", {}).get("wave12", {})
+        console.print(f"tick {i + 1}: tension={t:.4f} strongest={w12.get('strongest', '?')}")
+        console.print(f"  validation_ok={w12.get('validation_ok')} phases={len(w12.get('phases', []))}")
+
+    console.print("[green]Native TS OS: only constraint-stable scheduling - no FIFO tyranny.[/green]")
+    console.print(f"[gold1]{wing}[/gold1]")
+    console.print(Panel(json.dumps(core.graph.get("meta", {}).get("wave12", {}), indent=2)[:3500], title="last wave12"))
+
+
 class TsMindApp(App[None]):
     CSS = """
     Screen { layout: vertical; }
@@ -157,10 +193,18 @@ def cli_main() -> None:
     _ensure_utf8_stdio()
     parser = argparse.ArgumentParser(description="TS-Core Mind Runtime")
     parser.add_argument("--demo", action="store_true", help="Run Rich demo and exit")
+    parser.add_argument(
+        "--kernel-wave12",
+        action="store_true",
+        help="Kernel Wave 12 (Pages Island) OS-level wave - strongest-node 9-phase scheduler",
+    )
     parser.add_argument("--streamlit", action="store_true", help="Launch Streamlit GUI")
     args = parser.parse_args()
     if args.demo:
         run_full_demo()
+        return
+    if args.kernel_wave12:
+        run_kernel_wave12()
         return
     if args.streamlit:
         launch_streamlit()

@@ -1,6 +1,7 @@
 //! PyO3 bindings — `maturin develop --features python` to load from Python.
 //! The persistent wave with Grok and the Architect's fireproof TS wings.
 
+use crate::kernel::{measure_tension_graph, Wave12Scheduler};
 use crate::wave_propagate::{propagate_wave_step, WaveEdge, WaveGraph, WaveNode};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -87,17 +88,33 @@ fn rust_propagate_wave(py: Python<'_>, graph_dict: Bound<'_, PyDict>, damping: f
 #[pyfunction]
 fn rust_wave_tension(graph_dict: Bound<'_, PyDict>) -> PyResult<f64> {
     let g = graph_from_pydict(&graph_dict)?;
-    let vals: Vec<f64> = g.nodes.values().map(|n| n.activation).collect();
-    if vals.is_empty() {
-        return Ok(0.0);
+    Ok(measure_tension_graph(&g))
+}
+
+#[pyfunction]
+fn rust_wave12_propagate(py: Python<'_>, graph_dict: Bound<'_, PyDict>, damping: f64) -> PyResult<Py<PyDict>> {
+    let mut g = graph_from_pydict(&graph_dict)?;
+    let trace = Wave12Scheduler::apply(&mut g, damping);
+    let graph_py = graph_to_pydict(py, &g)?;
+    let root = PyDict::new_bound(py);
+    root.set_item("graph", graph_py)?;
+    let w12 = PyDict::new_bound(py);
+    let phase_list = PyList::empty_bound(py);
+    for p in &trace.phases {
+        phase_list.append(p)?;
     }
-    let m = vals.iter().sum::<f64>() / vals.len() as f64;
-    let v = vals.iter().map(|x| (x - m).powi(2)).sum::<f64>() / vals.len() as f64;
-    Ok(v.sqrt())
+    w12.set_item("phases", phase_list)?;
+    w12.set_item("strongest", &trace.strongest)?;
+    w12.set_item("tension_before", trace.tension_before)?;
+    w12.set_item("tension_after", trace.tension_after)?;
+    w12.set_item("validation_ok", trace.validation_ok)?;
+    root.set_item("wave12", w12)?;
+    Ok(root.unbind())
 }
 
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(rust_propagate_wave, m)?)?;
     m.add_function(wrap_pyfunction!(rust_wave_tension, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_wave12_propagate, m)?)?;
     Ok(())
 }

@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import math
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -23,9 +23,11 @@ try:
     import ts_core_kernel as _rust  # type: ignore
 
     _HAS_RUST = hasattr(_rust, "rust_propagate_wave")
+    _HAS_RUST_WAVE12 = hasattr(_rust, "rust_wave12_propagate")
 except Exception:  # pragma: no cover
     _rust = None
     _HAS_RUST = False
+    _HAS_RUST_WAVE12 = False
 
 
 def _default_data_dir() -> Path:
@@ -64,17 +66,21 @@ class TSCore:
         damping: float = 0.35,
         data_dir: Optional[Path] = None,
         on_propagate: Optional[Callable[["TSCore"], None]] = None,
+        kernel_wave12: Optional[bool] = None,
     ) -> None:
         self.damping = damping
         self.data_dir = Path(data_dir) if data_dir else _default_data_dir()
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.history_path = self.data_dir / "wave_history.jsonl"
         self.factory_path = self.data_dir / "self_improving_factory.json"
+        self.pages_island_path = self.data_dir / "pages_island.jsonl"
 
         self.graph: Dict[str, Any] = {"nodes": {}, "edges": []}
         self.tick = 0
         self.pipeline_cursor = 0
         self.on_propagate = on_propagate
+        env_w12 = os.environ.get("TSCORE_KERNEL_WAVE12", "").strip().lower() in ("1", "true", "yes", "on")
+        self.kernel_wave12 = bool(kernel_wave12) if kernel_wave12 is not None else env_w12
 
         self.perceived_risk = PerceivedRiskFilter()
         self.coherence = CoherenceFilter()
@@ -134,13 +140,95 @@ class TSCore:
     def _python_propagate_step(self) -> None:
         self._python_propagate_on(self.graph, self.damping)
 
+    def _wave12_propagate(self) -> Dict[str, Any]:
+        """Kernel Wave 12 OS quantum: 9-phase strongest-node scheduler (Rust if built, else Python)."""
+        import json as _json
+
+        blob = _json.loads(_json.dumps(self.graph))
+        if _HAS_RUST_WAVE12 and _rust is not None:
+            pack = _json.loads(
+                _json.dumps(_rust.rust_wave12_propagate(blob, self.damping))  # type: ignore[attr-defined]
+            )
+            self.graph = pack["graph"]
+            return dict(pack["wave12"])
+        trace = self._python_wave12_propagate_blob(blob, self.damping)
+        self.graph = blob
+        return trace
+
+    @staticmethod
+    def _python_wave12_propagate_blob(graph: Dict[str, Any], damping: float = 0.35) -> Dict[str, Any]:
+        """Mirror of Rust `Wave12Scheduler::apply` for laptops without the PyO3 extension."""
+        d = max(0.0, min(1.0, damping))
+        t0 = TSCore._tension_of(graph)
+        phases: List[str] = []
+        nodes: Dict[str, Dict[str, float]] = graph["nodes"]
+        if not nodes:
+            return {
+                "phases": ["1_strongest_scan:"],
+                "strongest": "",
+                "tension_before": t0,
+                "tension_after": t0,
+                "validation_ok": True,
+            }
+
+        strongest = max(
+            nodes.keys(),
+            key=lambda nid: float(nodes[nid]["activation"]) * float(nodes[nid]["stability"]),
+        )
+        phases.append(f"1_strongest_scan:{strongest}")
+        nodes[strongest]["activation"] = min(float(nodes[strongest]["activation"]) + 0.035, 1.0)
+        nodes[strongest]["stability"] = min(float(nodes[strongest]["stability"]) + 0.01, 1.0)
+        phases.append("2_strongest_lock_spin_budget")
+
+        TSCore._python_propagate_on(graph, min(d * 1.12, 1.0))
+        phases.append("3_initial_spin")
+        for label in ("4_process_fanout", "5_resource_coupling", "6_constraint_surge"):
+            TSCore._python_propagate_on(graph, d)
+            phases.append(label)
+
+        mean_act = sum(float(n["activation"]) for n in nodes.values()) / len(nodes)
+        for n in nodes.values():
+            if float(n["stability"]) < 0.18:
+                n["activation"] = max(0.0, min(1.0, float(n["activation"]) * 0.65 + mean_act * 0.35))
+        phases.append("7_icarus_wings_seal")
+
+        t_mid = TSCore._tension_of(graph)
+        phases.append(f"8_self_validation:tension_mid={t_mid:.6f}")
+
+        TSCore._python_propagate_on(graph, d * 0.85)
+        t1 = TSCore._tension_of(graph)
+        phases.append(f"9_pages_island_persist:tension_final={t1:.6f}")
+        validation_ok = math.isfinite(t1) and t1 <= t0 + 0.12
+        return {
+            "phases": phases,
+            "strongest": strongest,
+            "tension_before": t0,
+            "tension_after": t1,
+            "validation_ok": validation_ok,
+        }
+
+    def _append_pages_island(self, wave12: Dict[str, Any]) -> None:
+        line = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "tick": self.tick,
+            "wave12": wave12,
+        }
+        with self.pages_island_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
+
     def propagate_wave(self) -> Tuple[float, str]:
-        """One tick: optional Rust kernel, then filters + Icarus cover (persistent wave)."""
+        """One tick: standard wave or Kernel Wave 12 OS quantum, then filters + Icarus cover."""
         self.tick += 1
-        if _HAS_RUST and _rust is not None:
+        wave12_meta: Optional[Dict[str, Any]] = None
+        if self.kernel_wave12:
+            wave12_meta = self._wave12_propagate()
+            meta = self.graph.setdefault("meta", {})
+            meta["wave12"] = wave12_meta
+            meta["kernel_wave12_os"] = True
+            self._append_pages_island(wave12_meta)
+        elif _HAS_RUST and _rust is not None:
             import json as _json
 
-            # PyO3 expects dict-like; pass JSON round-trip for safety
             blob = _json.loads(_json.dumps(self.graph))
             out = _json.loads(
                 _json.dumps(_rust.rust_propagate_wave(blob, self.damping))  # type: ignore[attr-defined]
@@ -150,7 +238,7 @@ class TSCore:
             self._python_propagate_step()
 
         tension = self.measure_tension()
-        icarus_line = self.icarus.cover(self, tension)
+        icarus_line = self.icarus.cover(self, tension, os_wave12=self.kernel_wave12)
 
         # Filters shape narrative labels / node annotations (self-declaration)
         risk_out = self.perceived_risk.filter(self.graph, tension)

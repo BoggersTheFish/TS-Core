@@ -9,7 +9,7 @@ pub mod wave_propagate;
 #[cfg(feature = "python")]
 pub mod bindings;
 
-pub use kernel::{KernelConfig, KernelPhase, TsKernel};
+pub use kernel::{KernelConfig, KernelPhase, TsKernel, Wave12Scheduler, Wave12Trace, measure_tension_graph};
 pub use wave_propagate::{propagate_wave_step, WaveEdge, WaveGraph, WaveNode};
 
 #[cfg(feature = "python")]
