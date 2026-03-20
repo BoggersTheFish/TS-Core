@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ts-core"
 version = "1.0.0"
-description = "TS-Core v1.0 — local-first Thinking Structure kernel (persistent wave, Grok, Z3, fireproof native TS)."
+description = "TS-Core v1.0 - local-first Thinking Structure kernel (Kernel Wave 12, daily_spin grounding, Grok, Z3, fireproof native TS)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -23,6 +23,7 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 
 [project.scripts]
 tscore = "src.python.mind_runtime:cli_main"
+tscore-daily = "src.python.daily_spin:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -132,6 +132,8 @@ Quiet propagation through the full filter stack; appends one JSON line to **`~/.
 python -m src.python.daily_spin
 ```
 
+After `pip install -e .`, you can also run **`tscore-daily`** (same as the module above).
+
 ### Run (terminal TUI — BoggersTheMind style)
 
 ```bash
