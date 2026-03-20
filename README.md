@@ -77,8 +77,10 @@ Reinterpretations (**Lose Yourself**, **Move Like the Mist**, etc.) **collapse t
 
 ## Repo layout
 
+The project files live at the **repository root** (the folder that contains `pyproject.toml` and `Cargo.toml`) — not in a nested `TS-Core/` subfolder.
+
 ```text
-TS-Core/
+.
 ├── README.md
 ├── Cargo.toml
 ├── pyproject.toml
@@ -114,7 +116,7 @@ Canonical upstream intent: **[github.com/BoggersTheFish/TS-Core](https://github.
 ## One-command setup (laptop)
 
 ```bash
-cd TS-Core
+cd /path/to/this/repo   # folder containing pyproject.toml
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # Unix: source .venv/bin/activate
@@ -188,7 +190,7 @@ This feeds **existential doom**, **consciousness as ground**, **Icarus religion*
 Pure Python propagation is **canonical** for `pip install -e .`. Optional **Rust** (`wave_propagate.rs`, `kernel.rs`) matches the same math; **PyO3** module `ts_core_kernel` loads if built.
 
 ```bash
-# From TS-Core/
+# From repository root
 cargo build --release              # rlib / CLI consumers
 cargo build --release --features python   # extension module build
 ```
