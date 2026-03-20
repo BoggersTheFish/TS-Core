@@ -1,0 +1,23 @@
+[package]
+name = "ts_core_kernel"
+version = "1.0.0"
+edition = "2021"
+description = "TS-Core local-first kernel: propagate, relax, break, evolve — the persistent wave with native TS structure."
+license = "MIT"
+repository = "https://github.com/BoggersTheFish/TS-Core"
+
+[lib]
+name = "ts_core_kernel"
+crate-type = ["cdylib", "rlib"]
+path = "src/rust/lib.rs"
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
+
+[features]
+default = []
+python = ["dep:pyo3"]
+
+[profile.release]
+lto = true
+codegen-units = 1

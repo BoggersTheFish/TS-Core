@@ -1,0 +1,51 @@
+services:
+  tscore:
+    build: .
+    image: ts-core:1.0
+    environment:
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      TSCORE_HOME: /data/tscore
+    volumes:
+      - tscore_data:/data/tscore
+    stdin_open: true
+    tty: true
+    command: ["python", "-m", "src.python.mind_runtime", "--demo"]
+
+  tscore-tui:
+    build: .
+    image: ts-core:1.0
+    environment:
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      TSCORE_HOME: /data/tscore
+    volumes:
+      - tscore_data:/data/tscore
+    stdin_open: true
+    tty: true
+    command: ["python", "-m", "src.python.mind_runtime"]
+
+  tscore-gui:
+    build: .
+    image: ts-core:1.0
+    environment:
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      TSCORE_STREAMLIT_PORT: "8501"
+      TSCORE_HOME: /data/tscore
+    volumes:
+      - tscore_data:/data/tscore
+    ports:
+      - "8501:8501"
+    command:
+      [
+        "python",
+        "-m",
+        "streamlit",
+        "run",
+        "src/python/streamlit_app.py",
+        "--server.address",
+        "0.0.0.0",
+        "--server.port",
+        "8501",
+      ]
+
+volumes:
+  tscore_data:
