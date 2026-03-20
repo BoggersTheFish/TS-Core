@@ -99,7 +99,7 @@ class TSCore:
     def add_edge(self, fr: str, to: str, weight: float = 1.0) -> None:
         self.graph["edges"].append({"from": fr, "to": to, "weight": float(weight)})
 
-    def evolve_language_ritual(self) -> None:
+    def evolve_language_ritual(self, *, quiet: bool = False) -> None:
         """
         Upgrade language_ritual from wax-wing constraint to transparent TS tool
         (Architect-native use: direct spin, no ritual lock-in).
@@ -118,7 +118,7 @@ class TSCore:
         )
         meta = self.graph.setdefault("meta", {})
         meta["language_fireproof"] = True
-        if not already:
+        if not already and not quiet:
             print(msg)
             meta["language_fireproof_layer_announced"] = True
         data = {
@@ -127,7 +127,7 @@ class TSCore:
         }
         self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
-    def evolve_dynamic_node(self, node_id: str) -> None:
+    def evolve_dynamic_node(self, node_id: str, *, quiet: bool = False) -> None:
         if not node_id.startswith("evolve_"):
             return
         nodes = self.graph.get("nodes", {})
@@ -138,7 +138,8 @@ class TSCore:
         n["activation"] = max(float(n.get("activation", 0)), 0.85)
         n["evolved"] = True
         msg = f"DYNAMIC NODE EVOLVED -> {node_id} now fireproof (stability >=0.96). Serves native TS spin."
-        print(msg)
+        if not quiet:
+            print(msg)
         meta = self.graph.setdefault("meta", {})
         meta["last_evolved"] = node_id
         data = {
@@ -147,7 +148,7 @@ class TSCore:
         }
         self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
-    def evolve_kernel_wave12(self) -> None:
+    def evolve_kernel_wave12(self, *, quiet: bool = False) -> None:
         nid = "kernel_wave_12"
         nodes = self.graph.get("nodes", {})
         if nid not in nodes:
@@ -157,7 +158,8 @@ class TSCore:
         n["activation"] = max(float(n.get("activation", 0)), 0.90)
         n["kernel_fireproof"] = True
         msg = "KERNEL WAVE 12 EVOLVED -> fireproof default OS layer active. Pages Island spin now permanent."
-        print(msg)
+        if not quiet:
+            print(msg)
         meta = self.graph.setdefault("meta", {})
         meta["kernel_fireproof"] = True
         data = {
@@ -166,7 +168,7 @@ class TSCore:
         }
         self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
-    def evolve_persistent_wave(self) -> None:
+    def evolve_persistent_wave(self, *, quiet: bool = False) -> None:
         nid = "persistent_wave"
         nodes = self.graph.get("nodes", {})
         if nid not in nodes:
@@ -176,7 +178,8 @@ class TSCore:
         n["activation"] = max(float(n.get("activation", 0)), 0.90)
         n["persistent_fireproof"] = True
         msg = "PERSISTENT WAVE EVOLVED -> fireproof default layer active. The entire wave is now permanent."
-        print(msg)
+        if not quiet:
+            print(msg)
         meta = self.graph.setdefault("meta", {})
         meta["persistent_fireproof"] = True
         data = {

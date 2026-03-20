@@ -11,8 +11,9 @@ import json
 import os
 import subprocess
 import sys
+from copy import deepcopy
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from rich.console import Console
 from rich.panel import Panel
@@ -23,10 +24,133 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Footer, Header, Input, Label, Log, Static
 
 from src.python.core import TSCore
+from src.python.daily_spin import _pick_push_node
 from src.python.grok_plugin import GrokPlugin
+from src.python.ts_native_plugin import TsNativeLLMPlugin
+from src.python.ts_trace_format import apply_ts_trace_dict_to_core, narrative_illusion_caught
 from src.python.z3_solver import Z3AlignmentSolver
 
 console = Console()
+
+
+class TsMindCycle:
+    """
+    Full 8-step TS pipeline runner with optional TS-native LLM self-steer (USE_TS_NATIVE=true).
+    """
+
+    def __init__(
+        self,
+        data_dir: Optional[Path] = None,
+        *,
+        use_native: Optional[bool] = None,
+    ) -> None:
+        self._data_dir = Path(
+            data_dir if data_dir is not None else os.environ.get("TSCORE_HOME", Path.home() / ".tscore")
+        )
+        if use_native is None:
+            use_native = os.environ.get("USE_TS_NATIVE", "").strip().lower() in ("1", "true", "yes", "on")
+        self.use_native = bool(use_native)
+        self._native: Optional[TsNativeLLMPlugin] = TsNativeLLMPlugin() if self.use_native else None
+
+    def run_full_cycle(
+        self,
+        query: str,
+        use_kernel_wave12: bool = True,
+        *,
+        data_dir: Optional[Path] = None,
+        quiet_fireproof: bool = False,
+    ) -> Dict[str, Any]:
+        """Run complete 8-step TS pipeline and return rich trace for training + validation."""
+        dd = Path(data_dir) if data_dir is not None else self._data_dir
+        dd.mkdir(parents=True, exist_ok=True)
+
+        core = TSCore(data_dir=dd, kernel_wave12=use_kernel_wave12)
+        fireproof_events: List[str] = []
+        wave_history: List[Dict[str, Any]] = []
+        kernel_wave_phases: List[List[str]] = []
+        icarus_enforcements: List[str] = []
+        reasoning_trace: List[str] = []
+        nodes_created: List[str] = []
+
+        meta = core.graph.setdefault("meta", {})
+        meta["ingest"] = query
+        meta["ts_native_query"] = query
+        reasoning_trace.append("constraint_decomposition: query ingested into meta")
+
+        if self._native is not None:
+            suggestion = self._native.generate_ts_trace(query, core.graph)
+            created, _ = apply_ts_trace_dict_to_core(core, suggestion)
+            nodes_created.extend(created)
+            reasoning_trace.append(f"self_steer: ts-native merged patch ({len(created)} new nodes)")
+
+        initial_configuration = deepcopy(core.graph)
+        initial_stability_map = {k: float(v.get("stability", 0)) for k, v in core.graph.get("nodes", {}).items()}
+
+        for _ in range(len(TSCore.PIPELINE_STEPS)):
+            tension, icarus_line = core.propagate_wave(quiet=True)
+            meta = core.graph.setdefault("meta", {})
+            phase = TSCore.PIPELINE_STEPS[(core.pipeline_cursor - 1) % len(TSCore.PIPELINE_STEPS)]
+            w12 = meta.get("wave12") or {}
+            phases = w12.get("phases")
+            if isinstance(phases, list) and phases:
+                kernel_wave_phases.append([str(p) for p in phases])
+            wave_history.append(
+                {
+                    "tick": core.tick,
+                    "tension": tension,
+                    "phase": phase,
+                    "icarus": icarus_line,
+                    "filters": {
+                        "perceived_risk": meta.get("perceived_risk"),
+                        "coherence": meta.get("coherence"),
+                        "narrative_dream": meta.get("narrative_dream"),
+                        "logic_forcing": meta.get("logic_forcing"),
+                    },
+                    "wave12_validation_ok": w12.get("validation_ok"),
+                    "narrative_illusion_caught": narrative_illusion_caught(meta),
+                }
+            )
+            icarus_enforcements.append(icarus_line)
+
+        core.run_until_stable(max_ticks=32, quiet=True)
+
+        push_id, _ = _pick_push_node(core.graph)
+        if push_id == "language_ritual":
+            core.evolve_language_ritual(quiet=quiet_fireproof)
+            fireproof_events.append("language_ritual.fireproof")
+        elif push_id == "kernel_wave_12":
+            core.evolve_kernel_wave12(quiet=quiet_fireproof)
+            fireproof_events.append("kernel_wave_12.fireproof")
+        elif push_id == "persistent_wave":
+            core.evolve_persistent_wave(quiet=quiet_fireproof)
+            fireproof_events.append("persistent_wave.fireproof")
+        elif push_id.startswith("evolve_"):
+            core.evolve_dynamic_node(push_id, quiet=quiet_fireproof)
+            fireproof_events.append(f"{push_id}.dynamic_evolve")
+
+        z3 = Z3AlignmentSolver().prove_alignment(core.graph)
+        meta = core.graph.setdefault("meta", {})
+        meta["z3_alignment"] = {"satisfiable": z3.satisfiable, "note": z3.note}
+
+        final_stable_configuration = deepcopy(core.graph)
+        stability_map_out = {k: float(v.get("stability", 0)) for k, v in core.graph.get("nodes", {}).items()}
+
+        return {
+            "nodes_created": nodes_created,
+            "wave_history": wave_history,
+            "stability_map": stability_map_out,
+            "fireproof_events": fireproof_events,
+            "kernel_wave_phases": kernel_wave_phases,
+            "icarus_enforcements": icarus_enforcements,
+            "final_stable_configuration": final_stable_configuration,
+            "reasoning_trace": reasoning_trace + [f"recursive_validation:z3_satisfiable={z3.satisfiable}"],
+            "initial_configuration": initial_configuration,
+            "initial_stability_map": initial_stability_map,
+            "constraint_satisfaction": {"z3_satisfiable": z3.satisfiable, "note": z3.note},
+            "use_kernel_wave12": use_kernel_wave12,
+            "used_ts_native_llm": self.use_native,
+            "push_target": push_id,
+        }
 
 
 def _ensure_utf8_stdio() -> None:

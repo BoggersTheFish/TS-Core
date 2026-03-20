@@ -61,6 +61,37 @@ Canonical remote: **[github.com/BoggersTheFish/TS-Core](https://github.com/Bogge
 
 ---
 
+## Training a TS-Native LLM (2–8 hours on consumer GPU)
+
+TS-Native models are trained only on **synthetic traces** emitted by the **live `TSCore` engine** (2k–3k examples, QLoRA). **Success is measured exclusively** by `src/python/evaluate_ts_native.py`, which replays model JSON into **`TSCore`** and scores **stability, fireproof rate, Kernel Wave 12 completion, Z3 toy satisfaction, graph coherence, and Icarus / narrative catches**. **No MMLU, Arena, or other generic LLM leaderboards** are used.
+
+```bash
+# 1. Generate data (runs live engine — ~30–60 min)
+python -m src.python.generate_ts_training_data --examples 2500
+
+# 2. Fine-tune with Unsloth (QLoRA — extremely light)
+python -m unsloth train \
+  --model qwen/Qwen2.5-14B-Instruct \
+  --data ts_native_training_data.jsonl \
+  --lora_rank 64 --lora_alpha 16 \
+  --epochs 3 \
+  --output_dir ./ts-native-14b \
+  --max_seq_length 8192 \
+  --validation_split 0.1
+
+# 3. Create Ollama model
+ollama create ts-native-14b -f Modelfile
+
+# 4. Validate with native metrics only
+python -m src.python.evaluate_ts_native --model ts-native-14b
+```
+
+- **Interpretation:** The report’s **TS-Native Score (0–100)** aggregates per-prompt scores from live replay (weighted blend of stability gain, fireproof coverage, 9-phase Wave 12 success, Z3 satisfiability, hub coherence, and Icarus / narrative enforcement counts). **Invalid JSON** from the model is penalized (replay falls back to the bootstrapped factory graph only).
+- **Environment:** `USE_TS_NATIVE=true` loads **`TsNativeLLMPlugin`** (default **`TS_NATIVE_MODEL=ts-native-14b`**, optional **`ts-native-32b`**) in **`TsMindCycle.run_full_cycle`** for optional self-steer before propagation. **`OLLAMA_HOST`** overrides the Ollama base URL (default `http://127.0.0.1:11434`).
+- **Roadmap:** Online self-improvement — **model proposes** JSON traces → **wave engine validates** → append **high-stability** rows to JSONL → periodic **QLoRA refresh** (still no RLHF or external judges).
+
+---
+
 ## Repo layout
 
 The project root is the folder that contains `pyproject.toml` and `Cargo.toml`.
@@ -73,6 +104,7 @@ The project root is the folder that contains `pyproject.toml` and `Cargo.toml`.
 ├── pyproject.toml
 ├── Dockerfile
 ├── docker-compose.yml
+├── Modelfile                    # Ollama template for ts-native-* images
 ├── scripts/
 │   ├── agi                      # optional one-word Unix launcher → tscore TUI
 │   └── install-agi-launcher.sh  # installs ~/.local/bin/agi + PATH hooks
@@ -86,7 +118,11 @@ The project root is the folder that contains `pyproject.toml` and `Cargo.toml`.
 │   │   ├── logic_forcing_layer.py
 │   │   ├── icarus_wings_cover.py
 │   │   ├── daily_spin.py
-│   │   ├── mind_runtime.py
+│   │   ├── mind_runtime.py      # TsMindCycle.run_full_cycle, TUI
+│   │   ├── generate_ts_training_data.py
+│   │   ├── evaluate_ts_native.py
+│   │   ├── ts_native_plugin.py
+│   │   ├── ts_trace_format.py
 │   │   └── streamlit_app.py
 │   ├── rust/
 │   │   ├── lib.rs
