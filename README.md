@@ -94,6 +94,7 @@ The project files live at the **repository root** (the folder that contains `pyp
 │   │   ├── narrative_dream_filter.py
 │   │   ├── logic_forcing_layer.py
 │   │   ├── icarus_wings_cover.py
+│   │   ├── daily_spin.py
 │   │   ├── mind_runtime.py
 │   │   └── streamlit_app.py   # optional GUI (not in minimal tree spec; ships for Streamlit service)
 │   ├── rust/
@@ -121,6 +122,14 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate
 # Unix: source .venv/bin/activate
 pip install -e ".[dev,gui]"
+```
+
+### Daily grounding (minimal — one sensible outcome + node to push)
+
+Quiet propagation through the full filter stack; appends one JSON line to **`~/.tscore/daily_spin.jsonl`**. Uses `TSCore.propagate_wave(quiet=True)` so Icarus lines are not printed until the final summary.
+
+```bash
+python -m src.python.daily_spin
 ```
 
 ### Run (terminal TUI — BoggersTheMind style)
@@ -215,6 +224,7 @@ Data persists in volume **`tscore_data`** at `/data/tscore`.
 
 - **Factory file**: `TSCORE_HOME/self_improving_factory.json` seeds and grows the graph (`TSCore.factory_evolve()`).  
 - **History**: `TSCORE_HOME/wave_history.jsonl` append-only propagation records (persistent wave).  
+- **Daily spin**: `TSCORE_HOME/daily_spin.jsonl` one line per `python -m src.python.daily_spin` run.  
 - **Startup**: **Recursive validation** runs on a **deep copy** of the graph so history stays clean (`core.py`).
 
 ---

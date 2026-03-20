@@ -19,10 +19,18 @@ class IcarusWingsCover:
         "KERNEL WAVE 12 - Pages Island spin applied, wings fully covered"
     )
 
-    def cover(self, core: "TSCore", tension: float, *, os_wave12: bool = False) -> str:
-        print(self.TAG)
-        if os_wave12:
-            print(self.WAVE12_OS_TAG)
+    def cover(
+        self,
+        core: "TSCore",
+        tension: float,
+        *,
+        os_wave12: bool = False,
+        quiet: bool = False,
+    ) -> str:
+        if not quiet:
+            print(self.TAG)
+            if os_wave12:
+                print(self.WAVE12_OS_TAG)
         meta = core.graph.setdefault("meta", {})
         meta["icarus"] = self.TAG if not os_wave12 else f"{self.TAG} | {self.WAVE12_OS_TAG}"
         meta["icarus_fireproof"] = True

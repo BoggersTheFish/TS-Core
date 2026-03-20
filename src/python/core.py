@@ -216,7 +216,7 @@ class TSCore:
         with self.pages_island_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
-    def propagate_wave(self) -> Tuple[float, str]:
+    def propagate_wave(self, *, quiet: bool = False) -> Tuple[float, str]:
         """One tick: standard wave or Kernel Wave 12 OS quantum, then filters + Icarus cover."""
         self.tick += 1
         wave12_meta: Optional[Dict[str, Any]] = None
@@ -238,7 +238,9 @@ class TSCore:
             self._python_propagate_step()
 
         tension = self.measure_tension()
-        icarus_line = self.icarus.cover(self, tension, os_wave12=self.kernel_wave12)
+        icarus_line = self.icarus.cover(
+            self, tension, os_wave12=self.kernel_wave12, quiet=quiet
+        )
 
         # Filters shape narrative labels / node annotations (self-declaration)
         risk_out = self.perceived_risk.filter(self.graph, tension)
@@ -278,10 +280,12 @@ class TSCore:
         self.pipeline_cursor += 1
         return step
 
-    def run_until_stable(self, max_ticks: int = 64, eps: float = 1e-5) -> int:
+    def run_until_stable(
+        self, max_ticks: int = 64, eps: float = 1e-5, *, quiet: bool = False
+    ) -> int:
         last = float("inf")
         for _ in range(max_ticks):
-            t, _ = self.propagate_wave()
+            t, _ = self.propagate_wave(quiet=quiet)
             if abs(last - t) < eps:
                 break
             last = t
