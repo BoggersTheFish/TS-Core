@@ -84,6 +84,39 @@ def run_daily_spin() -> Dict[str, Any]:
     tension, _ = core.propagate_wave(quiet=True)
     meta = core.graph.get("meta", {})
     push_id, push_snap = _pick_push_node(core.graph)
+    if push_id == "language_ritual":
+        core.evolve_language_ritual()
+        n = core.graph.get("nodes", {}).get(push_id)
+        if n:
+            push_snap = {
+                "activation": float(n["activation"]),
+                "stability": float(n["stability"]),
+            }
+    elif push_id == "kernel_wave_12":
+        core.evolve_kernel_wave12()
+        n = core.graph.get("nodes", {}).get(push_id)
+        if n:
+            push_snap = {
+                "activation": float(n["activation"]),
+                "stability": float(n["stability"]),
+            }
+    elif push_id == "persistent_wave":
+        core.evolve_persistent_wave()
+        n = core.graph.get("nodes", {}).get(push_id)
+        if n:
+            push_snap = {
+                "activation": float(n["activation"]),
+                "stability": float(n["stability"]),
+            }
+    elif push_id.startswith("evolve_"):
+        core.evolve_dynamic_node(push_id)
+        n = core.graph.get("nodes", {}).get(push_id)
+        if n:
+            push_snap = {
+                "activation": float(n["activation"]),
+                "stability": float(n["stability"]),
+            }
+
     outcome = _sensible_outcome(meta, tension)
 
     record: Dict[str, Any] = {

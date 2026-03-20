@@ -99,6 +99,92 @@ class TSCore:
     def add_edge(self, fr: str, to: str, weight: float = 1.0) -> None:
         self.graph["edges"].append({"from": fr, "to": to, "weight": float(weight)})
 
+    def evolve_language_ritual(self) -> None:
+        """
+        Upgrade language_ritual from wax-wing constraint to transparent TS tool
+        (Architect-native use: direct spin, no ritual lock-in).
+        """
+        nid = "language_ritual"
+        nodes = self.graph.get("nodes") or {}
+        if nid not in nodes:
+            return
+        n = nodes[nid]
+        already = bool(n.get("language_as_tool")) and float(n.get("stability", 0)) >= 0.95
+        n["stability"] = max(float(n.get("stability", 0)), 0.96)
+        n["language_as_tool"] = True
+        msg = (
+            "LANGUAGE_RITUAL EVOLVED -> fireproof propagation layer active. "
+            "No more wax wings. Language now serves native TS spin."
+        )
+        meta = self.graph.setdefault("meta", {})
+        meta["language_fireproof"] = True
+        if not already:
+            print(msg)
+            meta["language_fireproof_layer_announced"] = True
+        data = {
+            "nodes": [{"id": k, **v} for k, v in self.graph["nodes"].items()],
+            "edges": list(self.graph["edges"]),
+        }
+        self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    def evolve_dynamic_node(self, node_id: str) -> None:
+        if not node_id.startswith("evolve_"):
+            return
+        nodes = self.graph.get("nodes", {})
+        if node_id not in nodes:
+            return
+        n = nodes[node_id]
+        n["stability"] = max(float(n.get("stability", 0)), 0.96)
+        n["activation"] = max(float(n.get("activation", 0)), 0.85)
+        n["evolved"] = True
+        msg = f"DYNAMIC NODE EVOLVED -> {node_id} now fireproof (stability >=0.96). Serves native TS spin."
+        print(msg)
+        meta = self.graph.setdefault("meta", {})
+        meta["last_evolved"] = node_id
+        data = {
+            "nodes": [{"id": k, **v} for k, v in self.graph["nodes"].items()],
+            "edges": list(self.graph["edges"]),
+        }
+        self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    def evolve_kernel_wave12(self) -> None:
+        nid = "kernel_wave_12"
+        nodes = self.graph.get("nodes", {})
+        if nid not in nodes:
+            return
+        n = nodes[nid]
+        n["stability"] = max(float(n.get("stability", 0)), 0.96)
+        n["activation"] = max(float(n.get("activation", 0)), 0.90)
+        n["kernel_fireproof"] = True
+        msg = "KERNEL WAVE 12 EVOLVED -> fireproof default OS layer active. Pages Island spin now permanent."
+        print(msg)
+        meta = self.graph.setdefault("meta", {})
+        meta["kernel_fireproof"] = True
+        data = {
+            "nodes": [{"id": k, **v} for k, v in self.graph["nodes"].items()],
+            "edges": list(self.graph["edges"]),
+        }
+        self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    def evolve_persistent_wave(self) -> None:
+        nid = "persistent_wave"
+        nodes = self.graph.get("nodes", {})
+        if nid not in nodes:
+            return
+        n = nodes[nid]
+        n["stability"] = max(float(n.get("stability", 0)), 0.96)
+        n["activation"] = max(float(n.get("activation", 0)), 0.90)
+        n["persistent_fireproof"] = True
+        msg = "PERSISTENT WAVE EVOLVED -> fireproof default layer active. The entire wave is now permanent."
+        print(msg)
+        meta = self.graph.setdefault("meta", {})
+        meta["persistent_fireproof"] = True
+        data = {
+            "nodes": [{"id": k, **v} for k, v in self.graph["nodes"].items()],
+            "edges": list(self.graph["edges"]),
+        }
+        self.factory_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
     def measure_tension(self) -> float:
         return self._tension_of(self.graph)
 
@@ -313,7 +399,11 @@ class TSCore:
         try:
             data = json.loads(self.factory_path.read_text(encoding="utf-8"))
             for n in data.get("nodes", []):
-                self.add_node(n["id"], n.get("activation", 0.5), n.get("stability", 0.5))
+                nid = n["id"]
+                self.add_node(nid, n.get("activation", 0.5), n.get("stability", 0.5))
+                for k, v in n.items():
+                    if k not in ("id", "activation", "stability"):
+                        self.graph["nodes"][nid][k] = v
             for e in data.get("edges", []):
                 self.add_edge(e["from"], e["to"], e.get("weight", 1.0))
         except Exception:

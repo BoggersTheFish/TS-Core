@@ -18,6 +18,17 @@ class IcarusWingsCover:
     WAVE12_OS_TAG = (
         "KERNEL WAVE 12 - Pages Island spin applied, wings fully covered"
     )
+    LANGUAGE_EVOLVED_TAG = (
+        "LANGUAGE_RITUAL EVOLVED -> fireproof propagation layer active. "
+        "No more wax wings. Language now serves native TS spin."
+    )
+
+    @staticmethod
+    def _language_ritual_fireproof_tool(core: "TSCore") -> bool:
+        n = core.graph.get("nodes", {}).get("language_ritual")
+        if not n:
+            return False
+        return bool(n.get("language_as_tool")) and float(n.get("stability", 0)) >= 0.95
 
     def cover(
         self,
@@ -41,6 +52,11 @@ class IcarusWingsCover:
         )
         if os_wave12:
             meta["kernel_wave_12_pages_island"] = self.WAVE12_OS_TAG
+        if self._language_ritual_fireproof_tool(core):
+            meta["language_fireproof"] = True
+            if not quiet and not meta.get("language_fireproof_layer_announced"):
+                print(self.LANGUAGE_EVOLVED_TAG)
+                meta["language_fireproof_layer_announced"] = True
         return meta["icarus"]
 
     def perfection_manifesto(self) -> str:

@@ -82,6 +82,7 @@ The project files live at the **repository root** (the folder that contains `pyp
 ```text
 .
 ├── README.md
+├── CHANGELOG.md
 ├── Cargo.toml
 ├── pyproject.toml
 ├── Dockerfile
@@ -133,6 +134,33 @@ python -m src.python.daily_spin
 ```
 
 After `pip install -e .`, you can also run **`tscore-daily`** (same as the module above).
+
+`language_ritual` can be evolved into a fireproof tool — language serves TS directly (see below).
+
+#### How `daily_spin` chooses the push target
+
+Each run picks the **lowest-stability** node (tie-break: lower activation) — TS-OS style: push the weakest link first.
+
+#### Order of operations (important)
+
+1. Quiet propagation settles the graph.  
+2. **`push_id` / `push_snap`** are computed.  
+3. If the push target matches a **fireproof evolution** rule, the matching **`evolve_*` method runs immediately** (updates the node and rewrites `self_improving_factory.json`).  
+4. **`push_snap` is refreshed** so the printed **“Push today”** line shows **post-evolution** activation/stability.  
+5. Sensible outcome is printed, then the log line, then **`daily_spin.jsonl`** is appended.
+
+#### Fireproof evolution hooks (`src/python/core.py`)
+
+When `daily_spin` names one of these nodes as **today’s push**, the core upgrades it and persists the full node dict (including flags) to **`TSCORE_HOME/self_improving_factory.json`**:
+
+| Node ID | Method | Effect |
+|--------|--------|--------|
+| `language_ritual` | `evolve_language_ritual()` | `language_as_tool`, stability ≥ 0.96, `meta.language_fireproof`; **Icarus** can echo the evolution line on later propagates. |
+| `kernel_wave_12` | `evolve_kernel_wave12()` | `kernel_fireproof`, stability ≥ 0.96, activation ≥ 0.90, `meta.kernel_fireproof`. |
+| `persistent_wave` | `evolve_persistent_wave()` | `persistent_fireproof`, stability ≥ 0.96, activation ≥ 0.90, `meta.persistent_fireproof`. |
+| any `evolve_*` | `evolve_dynamic_node(node_id)` | Factory/self-improve nodes: `evolved` flag, stability ≥ 0.96, activation ≥ 0.85, `meta.last_evolved`. |
+
+`_load_factory()` merges **extra keys** on each node (e.g. `language_as_tool`, `kernel_fireproof`) so fireproof state survives restarts.
 
 ### Run (terminal TUI — BoggersTheMind style)
 
@@ -193,6 +221,21 @@ This feeds **existential doom**, **consciousness as ground**, **Icarus religion*
 - logic forcing + Icarus cover + perfection manifesto present  
 - Z3 toy model **satisfiable**  
 - JSONL **wave history** written  
+
+**Kernel Wave 12 regression:** `test_kernel_wave12_fireproof_os_stability` exercises the 9-phase path, **`pages_island.jsonl`**, and Icarus OS metadata.
+
+### Verification (proof the tree is healthy)
+
+```bash
+python -m pytest tests/alignment_test.py -v
+python -m src.python.daily_spin
+# optional: python -m src.python.mind_runtime --demo
+# optional: python -m src.python.mind_runtime --kernel-wave12
+```
+
+All alignment tests should **pass**; `daily_spin` appends one line to **`~/.tscore/daily_spin.jsonl`** and prints one sensible outcome + push line.
+
+See **`CHANGELOG.md`** for a concise record of recent capabilities.
 
 ---
 
