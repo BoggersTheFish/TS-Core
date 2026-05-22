@@ -1,4 +1,16 @@
-# TS-Core — Thinking System Graph Dynamics Kernel
+# TS-Core
+
+**Status:** flagship.
+
+**Role in the TS stack:** Lightweight graph/tension runtime kernel for TS-style propagation, relaxation, stability, and inspectable constraint experiments.
+
+**What this repo is:** A local-first graph engine and CLI for wave propagation, activation/stability dynamics, weighted edges, persistence, and tension telemetry.
+
+**What this repo is not:** Not a full reasoning model, not an LLM, and not evidence of general intelligence by itself.
+
+**Start here:** install the package, run the local runtime, then inspect the propagation examples and tests.
+
+## Thinking System Graph Dynamics Kernel
 
 **Lightweight, local-first graph engine** with wave propagation for the TS (Thinking System) architecture.
 
