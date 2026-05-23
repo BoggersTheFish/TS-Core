@@ -2,6 +2,8 @@
 
 **Status:** flagship.
 
+**Canonical route:** [TS-Start-Here](https://github.com/BoggersTheFish/TS-Start-Here) -> [TS-Reasoner-v0](https://github.com/BoggersTheFish/TS-Reasoner-v0) -> [TensionLM](https://github.com/BoggersTheFish/TensionLM) -> TS-Codex-OS / TS-Core / CIG.
+
 **Role in the TS stack:** Lightweight graph/tension runtime kernel for TS-style propagation, relaxation, stability, and inspectable constraint experiments.
 
 **What this repo is:** A local-first graph engine and CLI for wave propagation, activation/stability dynamics, weighted edges, persistence, and tension telemetry.
@@ -61,7 +63,7 @@ python -m src.python.daily_spin
 
 - Powers graph dynamics for **BoggersTheAI** and **BoggersTheCIG**
 - Foundation for **GOAT-TS** experiments
-- Used in **TensionLM / bozo** training loops
+- Used in **TensionLM** training loops
 
 ---
 
