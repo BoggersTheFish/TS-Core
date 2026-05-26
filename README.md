@@ -43,11 +43,30 @@ python -m src.python.daily_spin
 ## What It Does
 
 - Maintains a graph of nodes (with activation + stability) and weighted edges
+- Provides a typed tension kernel surface: `GraphState`, `TensionChannel`, `ChannelResult`, `ResolverEvent`, `RuntimeTrace`, and `Receipt`
 - Runs **wave propagation** cycles (standard + Kernel Wave 12 mode)
 - Applies filter layers and narrative/Icarus voice overlays
 - Persistent JSON + JSONL history
 - Optional Z3 constraint solver for toy alignment checks
 - Optional Grok/xAI plugin
+
+---
+
+## Typed Tension Kernel
+
+The typed kernel lives in the importable `ts_core` package. It is intentionally domain-neutral:
+
+```text
+GraphState -> TensionChannel[] -> TypedTensionRuntime -> RuntimeTrace
+```
+
+Run the generic demo:
+
+```bash
+python examples/typed_tension_kernel_demo.py
+```
+
+This demo does not use reasoning-specific English or syllogism logic. App layers such as TS-Reasoner define their own channels on top of the kernel.
 
 ---
 

@@ -27,7 +27,7 @@ tscore-daily = "src.python.daily_spin:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*"]
+include = ["src*", "ts_core*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
